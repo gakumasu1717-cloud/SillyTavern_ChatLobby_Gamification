@@ -1,0 +1,12 @@
+{
+    "display_name": "ChatLobby Gamification",
+    "loading_order": 100,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "ChatLobby Team",
+    "version": "1.0.0",
+    "homePage": "https://github.com/gakumasu1717-cloud/SillyTavern_ChatLobby",
+    "auto_update": false
+}
