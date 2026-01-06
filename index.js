@@ -68,11 +68,11 @@
         
         // 💕 호감도 관련 업적 (새 티어 기준)
         affinity: [
-            { id: 'first_friend', name: '첫 번째 친구', desc: '캐릭터와 친구가 되었습니다 (1,000+ 메시지)', icon: '🤝', condition: (d) => d.maxAffinityTier >= 2 },
-            { id: 'bestfriend', name: '베스트프렌드', desc: '캐릭터와 베프가 되었습니다 (5,000+ 메시지)', icon: '💛', condition: (d) => d.maxAffinityTier >= 4 },
-            { id: 'soulmate', name: '소울메이트', desc: '캐릭터와 소울메이트가 되었습니다 (10,000+ 메시지)', icon: '💜', condition: (d) => d.maxAffinityTier >= 5 },
-            { id: 'obsessed', name: '몰입 그 자체', desc: '캐릭터에 완전히 빠졌습니다 (25,000+ 메시지)', icon: '💗', condition: (d) => d.maxAffinityTier >= 6 },
-            { id: 'devoted', name: '헌신자', desc: '한 캐릭터에 인생을 바쳤습니다 (50,000+ 메시지)', icon: '💖', condition: (d) => d.maxAffinityTier >= 7 },
+            { id: 'first_friend', name: '첫 번째 친구', desc: '봇과 친구가 되었습니다 (1,000+ 메시지)', icon: '🤝', condition: (d) => d.maxAffinityTier >= 2 },
+            { id: 'bestfriend', name: '베스트프렌드', desc: '봇과 베프가 되었습니다 (5,000+ 메시지)', icon: '💛', condition: (d) => d.maxAffinityTier >= 4 },
+            { id: 'soulmate', name: '소울메이트', desc: '봇과 소울메이트가 되었습니다 (10,000+ 메시지)', icon: '💜', condition: (d) => d.maxAffinityTier >= 5 },
+            { id: 'obsessed', name: '몰입 그 자체', desc: '봇에 완전히 빠졌습니다 (25,000+ 메시지)', icon: '💗', condition: (d) => d.maxAffinityTier >= 6 },
+            { id: 'devoted', name: '헌신자', desc: '한 봇에 인생을 바쳤습니다 (50,000+ 메시지)', icon: '💖', condition: (d) => d.maxAffinityTier >= 7 },
             { id: 'transcended', name: '초월자', desc: '인간의 한계를 넘어섰습니다 (200,000+ 메시지)', icon: '🌌', condition: (d) => d.maxAffinityTier >= 9 },
         ],
         
@@ -398,9 +398,11 @@
                 weeklyTotal += dayMessages;
                 weeklyDays++;
                 
-                // 해당 날 대화한 캐릭터
+                // 해당 날 대화한 봇 (메시지가 0인 것 제외)
                 if (daySnapshot.byChar) {
-                    Object.keys(daySnapshot.byChar).forEach(char => weeklyCharSet.add(char));
+                    Object.keys(daySnapshot.byChar)
+                        .filter(k => daySnapshot.byChar[k] > 0)
+                        .forEach(char => weeklyCharSet.add(char));
                 }
                 
                 // 연속 출석 체크

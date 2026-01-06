@@ -13,6 +13,8 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.06);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .settings-toggle {
@@ -61,6 +63,9 @@
 .toggle-label {
     font-size: 0.9em;
     color: var(--SmartThemeBodyColor, #ddd);
+    flex: 1;
+    min-width: 0;
+    word-break: keep-all;
 }
 
 /* ============================================
