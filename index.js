@@ -509,9 +509,11 @@
         // 이미 추가된 경우 스킵
         if (document.getElementById('gamification-toggle')) return true;
         
-        // ChatLobby의 header-actions 찾기
-        const headerActions = document.querySelector('#chat-lobby .header-actions');
-        if (!headerActions) {
+        // ChatLobby의 header-actions 찾기 (stats 버튼의 부모로 찾기)
+        const statsBtn = document.getElementById('chat-lobby-stats');
+        const headerActions = statsBtn?.parentElement;
+        
+        if (!headerActions || !headerActions.classList.contains('header-actions')) {
             console.log('[Gamification] ChatLobby header-actions not found, will retry...');
             return false;
         }
@@ -525,13 +527,7 @@
         gamificationBtn.addEventListener('click', toggleGamificationPanel);
         
         // 통계 버튼(📊) 뒤에 추가
-        const statsBtn = headerActions.querySelector('#chat-lobby-stats');
-        if (statsBtn) {
-            statsBtn.after(gamificationBtn);
-        } else {
-            // 없으면 맨 앞에 추가
-            headerActions.prepend(gamificationBtn);
-        }
+        statsBtn.after(gamificationBtn);
         
         console.log('[Gamification] Toggle button added to ChatLobby header');
         return true;
