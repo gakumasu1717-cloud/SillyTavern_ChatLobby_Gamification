@@ -244,6 +244,45 @@
     }
 
     /**
+     * 가장 최근 스냅샷 찾기 (최대 7일 전까지) - ChatLobby 로직 동일
+     * @param {Object} snapshots - 스냅샷 객체
+     * @param {string|Date} beforeDate - 기준 날짜 (이 날짜 이전에서 찾음)
+     * @param {number} maxDays - 최대 탐색 일수
+     */
+    function findRecentSnapshot(snapshots, beforeDate, maxDays = 7) {
+        let checkDate;
+        if (typeof beforeDate === 'string') {
+            checkDate = new Date(beforeDate + 'T00:00:00');
+        } else {
+            checkDate = new Date(beforeDate);
+        }
+        
+        for (let i = 0; i < maxDays; i++) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            const dateStr = getLocalDateString(checkDate);
+            if (snapshots[dateStr]) {
+                return { date: dateStr, snapshot: snapshots[dateStr] };
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 특정 날짜의 일별 증가량 계산 (ChatLobby 방식)
+     */
+    function getDailyIncrease(snapshots, dateStr) {
+        const daySnapshot = snapshots[dateStr];
+        if (!daySnapshot) return 0;
+        
+        // 해당 날짜 이전의 가장 최근 스냅샷 찾기
+        const recentData = findRecentSnapshot(snapshots, dateStr);
+        const prevTotal = recentData?.snapshot?.total || 0;
+        const todayTotal = daySnapshot.total || 0;
+        
+        return Math.max(0, todayTotal - prevTotal);
+    }
+
+    /**
      * 모든 통계 수집
      */
     function collectAllStats() {
@@ -335,30 +374,33 @@
             gamificationData.lastLoyalChar = null;
         }
         
-        // 오늘 메시지 수 계산 (어제와 비교)
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = getLocalDateString(yesterday);
-        const yesterdayTotal = snapshots[yesterdayStr]?.total || 0;
-        const todayMessages = Math.max(0, totalMessages - yesterdayTotal);
+        // 오늘 메시지 수 계산 (ChatLobby 방식: findRecentSnapshot 사용)
+        const todayMessages = getDailyIncrease(snapshots, today);
         
-        // 주간 통계 계산 (하루 평균)
+        // 주간 통계 계산 (하루 평균) + 7일 활동 데이터
         let weeklyTotal = 0;
         let weeklyDays = 0;
         const weeklyCharSet = new Set();
         let weeklyStreak = 0;
         const checkDate = new Date();
+        const dailyActivity = []; // 7일 활동 배열 (최신순)
         
         for (let i = 0; i < 7; i++) {
             const dateStr = getLocalDateString(checkDate);
             const daySnapshot = snapshots[dateStr];
+            
+            // ChatLobby 방식으로 일별 증가량 계산
+            const dayMessages = getDailyIncrease(snapshots, dateStr);
+            
+            // 7일 활동 데이터 추가
+            dailyActivity.push({
+                date: dateStr,
+                dayOfWeek: checkDate.getDay(), // 0=일, 1=월, ...
+                messages: dayMessages,
+                hasData: !!daySnapshot
+            });
+            
             if (daySnapshot && daySnapshot.total > 0) {
-                // 전날과 비교하여 해당 일자 메시지 수 계산
-                const prevDate = new Date(checkDate);
-                prevDate.setDate(prevDate.getDate() - 1);
-                const prevDateStr = getLocalDateString(prevDate);
-                const prevTotal = snapshots[prevDateStr]?.total || 0;
-                const dayMessages = i === 0 ? todayMessages : Math.max(0, (daySnapshot.total || 0) - prevTotal);
                 weeklyTotal += dayMessages;
                 weeklyDays++;
                 
@@ -398,7 +440,8 @@
             weeklyAvg,
             weeklyCharCount,
             weeklyStreak,
-            weeklyTotal
+            weeklyTotal,
+            dailyActivity // 7일 활동 데이터 (최신순)
         };
     }
 
@@ -853,41 +896,38 @@
             <div class="stats-chart">
                 <h4>📈 최근 7일 활동</h4>
                 <div class="activity-chart">
-                    ${createActivityChart(stats.snapshots)}
+                    ${createActivityChart(stats.dailyActivity)}
                 </div>
             </div>
         `;
     }
 
     /**
-     * 활동 차트 생성
+     * 활동 차트 생성 (ChatLobby 방식 일별 증가량 사용)
      */
-    function createActivityChart(snapshots) {
-        const days = [];
-        const checkDate = new Date();
-        
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            const dateStr = getLocalDateString(date);
-            const snapshot = snapshots[dateStr];
-            const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-            days.push({
-                date: dateStr,
-                day: dayName,
-                messages: snapshot?.total || 0
-            });
+    function createActivityChart(dailyActivity) {
+        if (!dailyActivity || dailyActivity.length === 0) {
+            return '<div class="no-data">데이터 없음</div>';
         }
+        
+        // dailyActivity는 최신순이므로 역순으로 정렬 (오래된 순 -> 최신순)
+        const days = [...dailyActivity].reverse();
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         
         const maxMessages = Math.max(...days.map(d => d.messages), 1);
         
-        return days.map(d => `
-            <div class="chart-bar">
-                <div class="bar-fill" style="height: ${(d.messages / maxMessages) * 100}%"></div>
-                <div class="bar-label">${d.day}</div>
-                <div class="bar-value">${d.messages > 0 ? d.messages : '-'}</div>
-            </div>
-        `).join('');
+        return days.map(d => {
+            const dayName = dayNames[d.dayOfWeek];
+            const isToday = d.dayOfWeek === new Date().getDay() && days.indexOf(d) === days.length - 1;
+            
+            return `
+                <div class="chart-bar ${isToday ? 'today' : ''} ${!d.hasData ? 'no-data' : ''}">
+                    <div class="bar-fill" style="height: ${d.hasData ? (d.messages / maxMessages) * 100 : 0}%"></div>
+                    <div class="bar-label ${isToday ? 'today' : ''}">${dayName}</div>
+                    <div class="bar-value">${d.hasData ? d.messages : '-'}</div>
+                </div>
+            `;
+        }).join('');
     }
 
     /**
