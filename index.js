@@ -109,7 +109,6 @@
     let isInitialized = false;
     let chatLobbyDetected = false;
     let panelVisible = false;
-    let observer = null;
 
     /**
      * 기본 데이터 구조
@@ -126,8 +125,7 @@
             lastLoyalChar: null,
             lateNightChats: 0,
             earlyMorningChats: 0,
-            newAchievements: [],
-            badgeEnabled: true // 캐릭터 카드 뱃지 표시 여부
+            newAchievements: []
         };
     }
 
@@ -565,48 +563,19 @@
             return false;
         }
         
-        // 뱃지 토글 버튼 생성
-        const badgeBtn = document.createElement('button');
-        badgeBtn.id = 'gamification-badge-toggle';
-        badgeBtn.setAttribute('data-action', 'toggle-badge');
-        badgeBtn.title = '호감도 뱃지 표시';
-        badgeBtn.innerHTML = gamificationData.badgeEnabled ? '🏅' : '⭕';
-        badgeBtn.addEventListener('click', toggleBadgeDisplay);
-        
         // 게이미피케이션 버튼 생성
         const gamificationBtn = document.createElement('button');
         gamificationBtn.id = 'gamification-toggle';
         gamificationBtn.setAttribute('data-action', 'open-gamification');
-        gamificationBtn.title = '게이미피케이션';
+        gamificationBtn.title = 'ChatLobby+';
         gamificationBtn.innerHTML = '🎮';
         gamificationBtn.addEventListener('click', toggleGamificationPanel);
         
         // 통계 버튼(📊) 뒤에 추가
-        statsBtn.after(badgeBtn);
-        badgeBtn.after(gamificationBtn);
+        statsBtn.after(gamificationBtn);
         
-        console.log('[Gamification] Toggle buttons added to ChatLobby header');
+        console.log('[Gamification] Toggle button added to ChatLobby header');
         return true;
-    }
-    
-    /**
-     * 뱃지 표시 토글
-     */
-    function toggleBadgeDisplay() {
-        gamificationData.badgeEnabled = !gamificationData.badgeEnabled;
-        saveData();
-        
-        const btn = document.getElementById('gamification-badge-toggle');
-        if (btn) {
-            btn.innerHTML = gamificationData.badgeEnabled ? '🏅' : '⭕';
-            btn.title = gamificationData.badgeEnabled ? '호감도 뱃지 표시 (켜짐)' : '호감도 뱃지 표시 (꺼짐)';
-        }
-        
-        if (gamificationData.badgeEnabled) {
-            decorateCharacterCards();
-        } else {
-            removeCharacterBadges();
-        }
     }
 
     /**
@@ -1008,92 +977,6 @@
                 break;
         }
     }
-    
-    /**
-     * 캐릭터 카드에서 뱃지 제거
-     */
-    function removeCharacterBadges() {
-        document.querySelectorAll('.gamification-badge').forEach(badge => badge.remove());
-        document.querySelectorAll('.gamification-rainbow').forEach(card => {
-            card.classList.remove('gamification-rainbow');
-            card.style.border = '';
-        });
-    }
-
-    // ============================================
-    // 캐릭터 카드 꾸미기 (ChatLobby 연동)
-    // ============================================
-
-    /**
-     * ChatLobby 캐릭터 카드에 호감도 뱃지 추가
-     */
-    function decorateCharacterCards() {
-        // 뱃지 비활성화 상태면 스킵
-        if (!gamificationData.badgeEnabled) return;
-        
-        const snapshots = loadCalendarSnapshots();
-        const today = getLocalDateString();
-        const byChar = snapshots[today]?.byChar || {};
-        
-        // ChatLobby 캐릭터 카드들
-        const cards = document.querySelectorAll('.lobby-char-card');
-        
-        cards.forEach(card => {
-            const avatar = card.dataset.charAvatar;
-            if (!avatar || card.querySelector('.gamification-badge')) return;
-            
-            const msgCount = byChar[avatar] || 0;
-            const tier = getAffinityTier(msgCount);
-            
-            if (tier.tier === 'stranger') return; // 기본 단계는 표시 안함
-            
-            // 뱃지 추가
-            const badge = document.createElement('div');
-            badge.className = `gamification-badge tier-${tier.tier}`;
-            badge.innerHTML = tier.icon;
-            badge.title = `${tier.name} (${msgCount.toLocaleString()} 메시지)`;
-            
-            card.appendChild(badge);
-            
-            // 테두리 효과
-            if (tier.border !== 'none') {
-                card.style.border = tier.border;
-            }
-        });
-    }
-
-    /**
-     * MutationObserver로 캐릭터 카드 감지
-     */
-    function observeCharacterCards() {
-        if (observer) observer.disconnect();
-        
-        observer = new MutationObserver((mutations) => {
-            let shouldDecorate = false;
-            
-            mutations.forEach(mutation => {
-                if (mutation.addedNodes.length > 0) {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1 && (
-                            node.classList?.contains('lobby-char-card') ||
-                            node.querySelector?.('.lobby-char-card')
-                        )) {
-                            shouldDecorate = true;
-                        }
-                    });
-                }
-            });
-            
-            if (shouldDecorate) {
-                requestAnimationFrame(decorateCharacterCards);
-            }
-        });
-        
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
 
     // ============================================
     // 초기화
@@ -1124,14 +1007,10 @@
         };
         tryAddToggle();
         
-        // 캐릭터 카드 감시
-        observeCharacterCards();
-        
         // 초기 통계 수집 및 업적 체크
         setTimeout(() => {
             const stats = collectAllStats();
             checkAchievements(stats);
-            decorateCharacterCards();
         }, 2000);
         
         isInitialized = true;
