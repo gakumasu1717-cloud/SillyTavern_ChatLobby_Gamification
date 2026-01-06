@@ -66,6 +66,39 @@
     flex: 1;
     min-width: 0;
     word-break: keep-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 모바일 설정 토글 */
+@media (max-width: 768px) {
+    .settings-section {
+        padding: 10px 12px;
+        margin-bottom: 12px;
+    }
+    
+    .settings-toggle {
+        gap: 10px;
+    }
+    
+    .toggle-slider {
+        width: 40px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+    
+    .toggle-slider::after {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .settings-toggle input:checked + .toggle-slider::after {
+        transform: translateX(18px);
+    }
+    
+    .toggle-label {
+        font-size: 0.85em;
+    }
 }
 
 /* ============================================
