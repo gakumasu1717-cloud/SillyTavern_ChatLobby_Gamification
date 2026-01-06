@@ -309,10 +309,15 @@
         // 캐릭터별 메시지 수 (최신 스냅샷에서)
         const byChar = latestSnapshot?.byChar || {};
         
-        // 대화한 캐릭터 수 (byChar에서 메시지가 있는 캐릭터)
-        const charCount = Object.keys(byChar).filter(k => byChar[k] > 0).length;
+        // 대화한 봇 수 계산: 스냅샷의 byChar + lastChatTimes 합집합
+        // (스냅샷에 없지만 오늘 대화한 봇도 포함)
+        const allChattedBots = new Set([
+            ...Object.keys(byChar).filter(k => byChar[k] > 0),
+            ...Object.keys(lastChatTimes)
+        ]);
+        const charCount = allChattedBots.size;
         
-        // 오늘 대화한 캐릭터 수 (lastChatTimes 기준)
+        // 오늘 대화한 봇 수 (lastChatTimes 기준)
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         const todayStartMs = todayStart.getTime();
