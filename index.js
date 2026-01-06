@@ -14,19 +14,19 @@
     // ============================================
     // 🏅 호감도 등급 시스템 (캐릭터별 메시지 수 기반)
     // 기준: 1등캐 10,000챗, 하루 평균 200챗
-    // 테두리는 흰색, 두께로 등급 표현
+    // 테두리: 톤다운된 색상 + 스타일로 등급 표현
     // ============================================
     const AFFINITY_TIERS = [
         { min: 0,       max: 499,     tier: 'stranger',     name: '낯선 사람',      icon: '👤', color: '#888888', border: 'none' },
-        { min: 500,     max: 999,     tier: 'acquaintance', name: '아는 사이',      icon: '👋', color: '#ffffff', border: 'solid 1px rgba(255,255,255,0.3)' },
-        { min: 1000,    max: 2499,    tier: 'friend',       name: '친구',           icon: '🤝', color: '#ffffff', border: 'solid 2px rgba(255,255,255,0.4)' },
-        { min: 2500,    max: 4999,    tier: 'closefriend',  name: '절친',           icon: '💚', color: '#ffffff', border: 'solid 2px rgba(255,255,255,0.5)' },
-        { min: 5000,    max: 9999,    tier: 'bestie',       name: '베스트프렌드',   icon: '💛', color: '#ffffff', border: 'solid 3px rgba(255,255,255,0.6)' },
-        { min: 10000,   max: 24999,   tier: 'soulmate',     name: '소울메이트',     icon: '💜', color: '#ffffff', border: 'solid 3px rgba(255,255,255,0.7)' },
-        { min: 25000,   max: 49999,   tier: 'obsession',    name: '집착',           icon: '💗', color: '#ffffff', border: 'solid 4px rgba(255,255,255,0.8)' },
-        { min: 50000,   max: 99999,   tier: 'devotion',     name: '헌신',           icon: '💖', color: '#ffffff', border: 'solid 4px rgba(255,255,255,0.9)' },
-        { min: 100000,  max: 199999,  tier: 'eternal',      name: '영혼의 반쪽',    icon: '💕', color: '#ffffff', border: 'solid 5px rgba(255,255,255,1)' },
-        { min: 200000,  max: Infinity, tier: 'singularity', name: '특이점',         icon: '🌌', color: '#ffffff', border: 'double 5px rgba(255,255,255,1)' }
+        { min: 500,     max: 999,     tier: 'acquaintance', name: '아는 사이',      icon: '👋', color: '#7a9dbf', border: 'solid 2px rgba(122, 157, 191, 0.5)' },
+        { min: 1000,    max: 2499,    tier: 'friend',       name: '친구',           icon: '🤝', color: '#7fb88a', border: 'solid 2px rgba(127, 184, 138, 0.6)' },
+        { min: 2500,    max: 4999,    tier: 'closefriend',  name: '절친',           icon: '💚', color: '#6db86d', border: 'double 3px rgba(109, 184, 109, 0.7)' },
+        { min: 5000,    max: 9999,    tier: 'bestie',       name: '베스트프렌드',   icon: '💛', color: '#d4b84a', border: 'double 3px rgba(212, 184, 74, 0.7)' },
+        { min: 10000,   max: 24999,   tier: 'soulmate',     name: '소울메이트',     icon: '💜', color: '#a08bc2', border: 'double 4px rgba(160, 139, 194, 0.8)' },
+        { min: 25000,   max: 49999,   tier: 'obsession',    name: '집착',           icon: '💗', color: '#d48fa5', border: 'ridge 4px rgba(212, 143, 165, 0.8)' },
+        { min: 50000,   max: 99999,   tier: 'devotion',     name: '헌신',           icon: '💖', color: '#d46a8f', border: 'ridge 4px rgba(212, 106, 143, 0.85)' },
+        { min: 100000,  max: 199999,  tier: 'eternal',      name: '영혼의 반쪽',    icon: '💕', color: '#c75080', border: 'groove 5px rgba(199, 80, 128, 0.9)' },
+        { min: 200000,  max: Infinity, tier: 'singularity', name: '특이점',         icon: '🌌', color: '#9966cc', border: 'double 5px rgba(153, 102, 204, 1)', special: true }
     ];
 
     // ============================================
@@ -565,6 +565,14 @@
             return false;
         }
         
+        // 뱃지 토글 버튼 생성
+        const badgeBtn = document.createElement('button');
+        badgeBtn.id = 'gamification-badge-toggle';
+        badgeBtn.setAttribute('data-action', 'toggle-badge');
+        badgeBtn.title = '호감도 뱃지 표시';
+        badgeBtn.innerHTML = gamificationData.badgeEnabled ? '🏅' : '⭕';
+        badgeBtn.addEventListener('click', toggleBadgeDisplay);
+        
         // 게이미피케이션 버튼 생성
         const gamificationBtn = document.createElement('button');
         gamificationBtn.id = 'gamification-toggle';
@@ -574,10 +582,31 @@
         gamificationBtn.addEventListener('click', toggleGamificationPanel);
         
         // 통계 버튼(📊) 뒤에 추가
-        statsBtn.after(gamificationBtn);
+        statsBtn.after(badgeBtn);
+        badgeBtn.after(gamificationBtn);
         
-        console.log('[Gamification] Toggle button added to ChatLobby header');
+        console.log('[Gamification] Toggle buttons added to ChatLobby header');
         return true;
+    }
+    
+    /**
+     * 뱃지 표시 토글
+     */
+    function toggleBadgeDisplay() {
+        gamificationData.badgeEnabled = !gamificationData.badgeEnabled;
+        saveData();
+        
+        const btn = document.getElementById('gamification-badge-toggle');
+        if (btn) {
+            btn.innerHTML = gamificationData.badgeEnabled ? '🏅' : '⭕';
+            btn.title = gamificationData.badgeEnabled ? '호감도 뱃지 표시 (켜짐)' : '호감도 뱃지 표시 (꺼짐)';
+        }
+        
+        if (gamificationData.badgeEnabled) {
+            decorateCharacterCards();
+        } else {
+            removeCharacterBadges();
+        }
     }
 
     /**
@@ -994,6 +1023,9 @@
      * ChatLobby 캐릭터 카드에 호감도 뱃지 추가
      */
     function decorateCharacterCards() {
+        // 뱃지 비활성화 상태면 스킵
+        if (!gamificationData.badgeEnabled) return;
+        
         const snapshots = loadCalendarSnapshots();
         const today = getLocalDateString();
         const byChar = snapshots[today]?.byChar || {};
