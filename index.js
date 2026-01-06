@@ -1,6 +1,6 @@
 // ============================================
 // ChatLobby Gamification - 게이미피케이션 확장
-// "인생 배팅" 버전 - 자조적 유머와 수집 욕구를 자극하는 업적 시스템
+// "ChatLobby+" 버전 - 자조적 유머와 수집 욕구를 자극하는 업적 시스템
 // ============================================
 
 (function() {
@@ -78,8 +78,6 @@
         
         // 🎯 특수 업적
         special: [
-            { id: 'night_owl', name: '올빼미족', desc: '자정~새벽 4시 사이에 채팅했습니다', icon: '🦉', condition: (d) => d.lateNightChats > 0 },
-            { id: 'early_bird', name: '얼리버드', desc: '새벽 5시~7시 사이에 채팅했습니다', icon: '🐦', condition: (d) => d.earlyMorningChats > 0 },
             { id: 'favorite_char', name: '단짝', desc: '캐릭터를 즐겨찾기에 추가했습니다', icon: '⭐', condition: (d) => d.hasFavorites },
             { id: 'multi_lover', name: '환승 이별', desc: '오늘 5명 이상의 캐릭터와 대화했습니다', icon: '💔', condition: (d) => d.todayCharCount >= 5 },
             { id: 'loyalist', name: '일편단심', desc: '7일간 한 캐릭터에만 집중했습니다', icon: '💍', condition: (d) => d.loyalDays >= 7 },
@@ -127,7 +125,8 @@
             lastLoyalChar: null,
             lateNightChats: 0,
             earlyMorningChats: 0,
-            newAchievements: []
+            newAchievements: [],
+            badgeEnabled: true // 캐릭터 카드 뱃지 표시 여부
         };
     }
 
@@ -336,18 +335,6 @@
         // 즐겨찾기 여부
         const hasFavorites = (lobbyData?.characterFavorites?.length || 0) > 0;
         
-        // 시간대 체크 (현재 시간 기준)
-        const hour = new Date().getHours();
-        const isLateNight = hour >= 0 && hour < 4;
-        const isEarlyMorning = hour >= 5 && hour < 7;
-        
-        if (isLateNight && Object.keys(lastChatTimes).length > 0) {
-            gamificationData.lateNightChats++;
-        }
-        if (isEarlyMorning && Object.keys(lastChatTimes).length > 0) {
-            gamificationData.earlyMorningChats++;
-        }
-        
         // 최근 방문 이후 일수
         const lastVisit = gamificationData.lastVisit || Date.now();
         const daysSinceLastVisit = Math.floor((Date.now() - lastVisit) / (1000 * 60 * 60 * 24));
@@ -439,8 +426,6 @@
             streak,
             maxAffinityTier,
             hasFavorites,
-            lateNightChats: gamificationData.lateNightChats,
-            earlyMorningChats: gamificationData.earlyMorningChats,
             loyalDays: gamificationData.loyalDays,
             daysSinceLastVisit,
             hadLongStreak: gamificationData.hadLongStreak,
@@ -451,7 +436,6 @@
             weeklyCharCount,
             weeklyStreak,
             weeklyTotal,
-            weeklyNewChars, // 주간 신규 캐릭터 수
             dailyActivity // 7일 활동 데이터 (최신순)
         };
     }
@@ -681,7 +665,7 @@
             <div class="gamification-overlay"></div>
             <div class="gamification-content">
                 <div class="gamification-header">
-                    <h2>🎮 인생 배팅</h2>
+                    <h2>🎮 ChatLobby+</h2>
                     <button class="gamification-close">✕</button>
                 </div>
                 
@@ -737,8 +721,8 @@
         return `
             <div class="affinity-list">
                 ${topCharacters.map((char, index) => `
-                    <div class="affinity-card" style="--tier-color: ${char.tier.color}; ${char.tier.gradient ? `--tier-gradient: ${char.tier.gradient}` : ''}">
-                        <div class="affinity-rank">#${index + 1}</div>
+                    <div class="affinity-card ${index === 0 ? 'top-rank' : ''}" style="--tier-color: ${char.tier.color}; ${char.tier.gradient ? `--tier-gradient: ${char.tier.gradient}` : ''}">
+                        <div class="affinity-rank">${index === 0 ? '👑' : '#' + (index + 1)}</div>
                         <div class="affinity-avatar">
                             <img src="/characters/${encodeURIComponent(char.avatar)}" alt="${char.name}" onerror="this.src='/img/ai4.png'">
                             <span class="affinity-icon">${char.tier.icon}</span>
@@ -792,8 +776,8 @@
                         <span class="weekly-value">${stats.weeklyAvg}개</span>
                     </div>
                     <div class="weekly-stat">
-                        <span class="weekly-label">이번 주 신규 캐릭터</span>
-                        <span class="weekly-value">+${stats.weeklyNewChars}명</span>
+                        <span class="weekly-label">이번 주 대화 캐릭터</span>
+                        <span class="weekly-value">${stats.weeklyCharCount}명</span>
                     </div>
                     <div class="weekly-stat">
                         <span class="weekly-label">이번 주 연속 출석</span>
@@ -843,10 +827,27 @@
      * 통계 탭 HTML
      */
     function createStatsTabHTML(stats) {
-        const daysSinceStart = Math.max(1, Math.floor((Date.now() - gamificationData.firstVisit) / (1000 * 60 * 60 * 24)));
-        const avgMessagesPerDay = Math.round(stats.totalMessages / daysSinceStart);
+        // ChatLobby Wrapped 방식: 스냅샷에서 가장 오래된 날짜 찾기
+        const snapshotDates = Object.keys(stats.snapshots).sort();
+        let daysSinceStart = 1;
+        let avgMessagesPerDay = 0;
+        
+        if (snapshotDates.length > 0) {
+            const oldestDate = new Date(snapshotDates[0] + 'T00:00:00');
+            const today = new Date();
+            daysSinceStart = Math.max(1, Math.ceil((today - oldestDate) / (1000 * 60 * 60 * 24)));
+            avgMessagesPerDay = Math.round(stats.totalMessages / daysSinceStart);
+        }
         
         return `
+            <div class="settings-section">
+                <label class="settings-toggle">
+                    <input type="checkbox" id="badge-toggle" ${gamificationData.badgeEnabled ? 'checked' : ''}>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">캐릭터 카드 뱃지 표시</span>
+                </label>
+            </div>
+            
             <div class="today-stats">
                 <h4>📆 오늘의 활동</h4>
                 <div class="today-stats-grid">
@@ -875,8 +876,8 @@
                         <span class="weekly-overview-label">주간 총 메시지</span>
                     </div>
                     <div class="weekly-overview-card">
-                        <span class="weekly-overview-value">+${stats.weeklyNewChars}명</span>
-                        <span class="weekly-overview-label">주간 신규 캐릭터</span>
+                        <span class="weekly-overview-value">${stats.weeklyCharCount}명</span>
+                        <span class="weekly-overview-label">주간 대화 캐릭터</span>
                     </div>
                 </div>
             </div>
@@ -896,16 +897,6 @@
                     <div class="stat-icon">🔥</div>
                     <div class="stat-value">${gamificationData.maxStreak}일</div>
                     <div class="stat-label">최장 연속 출석</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🌙</div>
-                    <div class="stat-value">${gamificationData.lateNightChats}</div>
-                    <div class="stat-label">심야 채팅 횟수</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🌅</div>
-                    <div class="stat-value">${gamificationData.earlyMorningChats}</div>
-                    <div class="stat-label">새벽 채팅 횟수</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">💍</div>
@@ -943,9 +934,9 @@
             
             return `
                 <div class="chart-bar ${isToday ? 'today' : ''} ${!d.hasData ? 'no-data' : ''}">
+                    <div class="bar-value">${d.hasData ? d.messages : '-'}</div>
                     <div class="bar-fill" style="height: ${d.hasData ? (d.messages / maxMessages) * 100 : 0}%"></div>
                     <div class="bar-label ${isToday ? 'today' : ''}">${dayName}</div>
-                    <div class="bar-value">${d.hasData ? d.messages : '-'}</div>
                 </div>
             `;
         }).join('');
@@ -979,8 +970,32 @@
                 break;
             case 'stats':
                 content.innerHTML = createStatsTabHTML(stats);
+                // 뱃지 토글 이벤트
+                const badgeToggle = content.querySelector('#badge-toggle');
+                if (badgeToggle) {
+                    badgeToggle.addEventListener('change', (e) => {
+                        gamificationData.badgeEnabled = e.target.checked;
+                        saveData();
+                        if (e.target.checked) {
+                            decorateCharacterCards();
+                        } else {
+                            removeCharacterBadges();
+                        }
+                    });
+                }
                 break;
         }
+    }
+    
+    /**
+     * 캐릭터 카드에서 뱃지 제거
+     */
+    function removeCharacterBadges() {
+        document.querySelectorAll('.gamification-badge').forEach(badge => badge.remove());
+        document.querySelectorAll('.gamification-rainbow').forEach(card => {
+            card.classList.remove('gamification-rainbow');
+            card.style.border = '';
+        });
     }
 
     // ============================================
@@ -991,6 +1006,9 @@
      * ChatLobby 캐릭터 카드에 호감도 뱃지 추가
      */
     function decorateCharacterCards() {
+        // 뱃지 비활성화 상태면 스킵
+        if (!gamificationData.badgeEnabled) return;
+        
         const snapshots = loadCalendarSnapshots();
         const today = getLocalDateString();
         const byChar = snapshots[today]?.byChar || {};

@@ -1,7 +1,67 @@
 /* ============================================
    ChatLobby Gamification - 스타일시트
-   "인생 배팅" 버전
+   "ChatLobby+" 버전
    ============================================ */
+
+/* ============================================
+   설정 토글 스타일
+   ============================================ */
+
+.settings-section {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.settings-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.toggle-slider::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.settings-toggle input:checked + .toggle-slider {
+    background: linear-gradient(135deg, rgba(100, 180, 120, 0.8) 0%, rgba(80, 160, 100, 0.9) 100%);
+}
+
+.settings-toggle input:checked + .toggle-slider::after {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 0.9em;
+    color: var(--SmartThemeBodyColor, #ddd);
+}
 
 /* ============================================
    네비게이션 토글 버튼
@@ -264,22 +324,49 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
-    border-left: 4px solid var(--tier-color, #888);
+    border-left: 3px solid var(--tier-color, #666);
     transition: all 0.2s ease;
 }
 
 .affinity-card:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
     transform: translateX(4px);
+}
+
+/* 1등 카드 특별 스타일 */
+.affinity-card.top-rank {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 180, 0, 0.04) 100%);
+    border-left: 4px solid rgba(255, 200, 100, 0.7);
+    position: relative;
+}
+
+.affinity-card.top-rank::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255, 200, 100, 0.15);
+    pointer-events: none;
 }
 
 .affinity-rank {
     font-size: 0.9em;
     font-weight: 700;
-    color: var(--SmartThemeQuoteColor, #888);
+    color: var(--SmartThemeQuoteColor, #777);
     min-width: 30px;
+    text-align: center;
+}
+
+/* 왕관 스타일 */
+.affinity-card.top-rank .affinity-rank {
+    font-size: 1.3em;
+    color: rgba(255, 200, 100, 0.9);
+    text-shadow: 0 0 10px rgba(255, 200, 100, 0.3);
 }
 
 .affinity-avatar {
@@ -512,10 +599,11 @@
 
 .activity-chart {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-end; /* 막대가 아래에서 위로 */
     justify-content: space-around;
-    height: 120px;
+    height: 160px;
     gap: 8px;
+    padding: 12px 0;
 }
 
 .chart-bar {
@@ -523,28 +611,46 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end; /* 막대가 아래에서 시작 */
     height: 100%;
+    max-width: 50px;
+}
+
+.bar-value {
+    font-size: 0.75em;
+    color: var(--SmartThemeQuoteColor, #999);
+    margin-bottom: 4px;
+    font-weight: 500;
+    min-height: 16px;
+}
+
+.chart-bar.today .bar-value {
+    color: rgba(100, 200, 140, 0.9);
 }
 
 .bar-fill {
     width: 100%;
-    max-width: 40px;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-    border-radius: 4px 4px 0 0;
+    max-width: 36px;
+    background: linear-gradient(to top, rgba(100, 120, 180, 0.5) 0%, rgba(130, 100, 160, 0.7) 100%);
+    border-radius: 6px 6px 0 0;
     transition: height 0.5s ease;
-    min-height: 4px;
+    min-height: 2px;
+}
+
+.chart-bar.today .bar-fill {
+    background: linear-gradient(to top, rgba(80, 180, 120, 0.6) 0%, rgba(100, 200, 140, 0.8) 100%);
 }
 
 .bar-label {
-    font-size: 0.75em;
-    color: var(--SmartThemeQuoteColor, #aaa);
+    font-size: 0.8em;
+    color: var(--SmartThemeQuoteColor, #777);
     margin-top: 8px;
+    font-weight: 500;
 }
 
-.bar-value {
-    font-size: 0.7em;
-    color: var(--SmartThemeBodyColor, #fff);
-    margin-top: 4px;
+.bar-label.today {
+    color: rgba(100, 200, 140, 0.9);
+    font-weight: 600;
 }
 
 /* ============================================
