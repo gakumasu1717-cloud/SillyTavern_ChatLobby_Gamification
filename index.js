@@ -14,18 +14,19 @@
     // ============================================
     // 🏅 호감도 등급 시스템 (캐릭터별 메시지 수 기반)
     // 기준: 1등캐 10,000챗, 하루 평균 200챗
+    // 테두리는 흰색, 두께로 등급 표현
     // ============================================
     const AFFINITY_TIERS = [
         { min: 0,       max: 499,     tier: 'stranger',     name: '낯선 사람',      icon: '👤', color: '#888888', border: 'none' },
-        { min: 500,     max: 999,     tier: 'acquaintance', name: '아는 사이',      icon: '👋', color: '#4a90d9', border: 'solid 2px #4a90d9' },
-        { min: 1000,    max: 2499,    tier: 'friend',       name: '친구',           icon: '🤝', color: '#50c878', border: 'solid 2px #50c878' },
-        { min: 2500,    max: 4999,    tier: 'closefriend',  name: '절친',           icon: '💚', color: '#32cd32', border: 'solid 3px #32cd32' },
-        { min: 5000,    max: 9999,    tier: 'bestie',       name: '베스트프렌드',   icon: '💛', color: '#ffd700', border: 'solid 3px #ffd700' },
-        { min: 10000,   max: 24999,   tier: 'soulmate',     name: '소울메이트',     icon: '💜', color: '#9370db', border: 'solid 3px #9370db, 0 0 10px #9370db40' },
-        { min: 25000,   max: 49999,   tier: 'obsession',    name: '집착',           icon: '💗', color: '#ff69b4', border: 'solid 4px #ff69b4, 0 0 15px #ff69b440' },
-        { min: 50000,   max: 99999,   tier: 'devotion',     name: '헌신',           icon: '💖', color: '#ff1493', border: 'solid 4px #ff1493, 0 0 20px #ff149340' },
-        { min: 100000,  max: 199999,  tier: 'eternal',      name: '영혼의 반쪽',    icon: '💕', color: '#ff0080', border: 'solid 5px #ff0080, 0 0 25px #ff008050' },
-        { min: 200000,  max: Infinity, tier: 'singularity', name: '특이점',         icon: '🌌', color: '#000', border: 'solid 5px transparent', gradient: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)' }
+        { min: 500,     max: 999,     tier: 'acquaintance', name: '아는 사이',      icon: '👋', color: '#ffffff', border: 'solid 1px rgba(255,255,255,0.3)' },
+        { min: 1000,    max: 2499,    tier: 'friend',       name: '친구',           icon: '🤝', color: '#ffffff', border: 'solid 2px rgba(255,255,255,0.4)' },
+        { min: 2500,    max: 4999,    tier: 'closefriend',  name: '절친',           icon: '💚', color: '#ffffff', border: 'solid 2px rgba(255,255,255,0.5)' },
+        { min: 5000,    max: 9999,    tier: 'bestie',       name: '베스트프렌드',   icon: '💛', color: '#ffffff', border: 'solid 3px rgba(255,255,255,0.6)' },
+        { min: 10000,   max: 24999,   tier: 'soulmate',     name: '소울메이트',     icon: '💜', color: '#ffffff', border: 'solid 3px rgba(255,255,255,0.7)' },
+        { min: 25000,   max: 49999,   tier: 'obsession',    name: '집착',           icon: '💗', color: '#ffffff', border: 'solid 4px rgba(255,255,255,0.8)' },
+        { min: 50000,   max: 99999,   tier: 'devotion',     name: '헌신',           icon: '💖', color: '#ffffff', border: 'solid 4px rgba(255,255,255,0.9)' },
+        { min: 100000,  max: 199999,  tier: 'eternal',      name: '영혼의 반쪽',    icon: '💕', color: '#ffffff', border: 'solid 5px rgba(255,255,255,1)' },
+        { min: 200000,  max: Infinity, tier: 'singularity', name: '특이점',         icon: '🌌', color: '#ffffff', border: 'double 5px rgba(255,255,255,1)' }
     ];
 
     // ============================================
@@ -993,9 +994,6 @@
      * ChatLobby 캐릭터 카드에 호감도 뱃지 추가
      */
     function decorateCharacterCards() {
-        // 뱃지 비활성화 상태면 스킵
-        if (!gamificationData.badgeEnabled) return;
-        
         const snapshots = loadCalendarSnapshots();
         const today = getLocalDateString();
         const byChar = snapshots[today]?.byChar || {};
@@ -1021,10 +1019,7 @@
             card.appendChild(badge);
             
             // 테두리 효과
-            if (tier.gradient) {
-                card.style.setProperty('--tier-border', tier.gradient);
-                card.classList.add('gamification-rainbow');
-            } else if (tier.border !== 'none') {
+            if (tier.border !== 'none') {
                 card.style.border = tier.border;
             }
         });
