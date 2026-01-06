@@ -251,13 +251,25 @@
         const lastChatTimes = loadLastChatTimes();
         const lobbyData = loadChatLobbyData();
         
-        // 총 메시지 수 계산 (최신 스냅샷에서)
+        // 최신 스냅샷 찾기 (오늘 또는 가장 최근)
         const today = getLocalDateString();
-        const todaySnapshot = snapshots[today];
-        const totalMessages = todaySnapshot?.total || 0;
+        let latestSnapshot = snapshots[today];
+        let latestDate = today;
         
-        // 캐릭터별 메시지 수
-        const byChar = todaySnapshot?.byChar || {};
+        if (!latestSnapshot) {
+            // 오늘 스냅샷이 없으면 가장 최근 스냅샷 찾기
+            const dates = Object.keys(snapshots).sort().reverse();
+            if (dates.length > 0) {
+                latestDate = dates[0];
+                latestSnapshot = snapshots[latestDate];
+            }
+        }
+        
+        // 총 메시지 수 (최신 스냅샷의 누적 합계)
+        const totalMessages = latestSnapshot?.total || 0;
+        
+        // 캐릭터별 메시지 수 (최신 스냅샷에서)
+        const byChar = latestSnapshot?.byChar || {};
         
         // 대화한 캐릭터 수 (byChar에서 메시지가 있는 캐릭터)
         const charCount = Object.keys(byChar).filter(k => byChar[k] > 0).length;
@@ -491,43 +503,37 @@
     // ============================================
 
     /**
-     * 햄버거 메뉴에 토글 버튼 추가
+     * ChatLobby header-actions에 토글 버튼 추가
      */
     function addGamificationToggle() {
         // 이미 추가된 경우 스킵
-        if (document.getElementById('gamification-toggle')) return;
+        if (document.getElementById('gamification-toggle')) return true;
         
-        // 햄버거 메뉴 아이콘들이 있는 컨테이너 찾기
-        const hamburgerContainer = document.querySelector('#top-bar .fa-bars')?.closest('.drawer-icon');
-        if (!hamburgerContainer) {
-            console.log('[Gamification] Hamburger container not found, will retry...');
+        // ChatLobby의 header-actions 찾기
+        const headerActions = document.querySelector('#chat-lobby .header-actions');
+        if (!headerActions) {
+            console.log('[Gamification] ChatLobby header-actions not found, will retry...');
             return false;
         }
         
-        // 드로워 콘텐츠 찾기
-        const drawerContent = document.querySelector('#right-nav-panel .drawer-content');
-        if (!drawerContent) {
-            console.log('[Gamification] Drawer content not found, will retry...');
-            return false;
-        }
+        // 게이미피케이션 버튼 생성
+        const gamificationBtn = document.createElement('button');
+        gamificationBtn.id = 'gamification-toggle';
+        gamificationBtn.setAttribute('data-action', 'open-gamification');
+        gamificationBtn.title = '게이미피케이션';
+        gamificationBtn.innerHTML = '🎮';
+        gamificationBtn.addEventListener('click', toggleGamificationPanel);
         
-        // 네비게이션에 버튼 추가
-        const extensionDiv = document.createElement('div');
-        extensionDiv.id = 'gamification-toggle';
-        extensionDiv.className = 'drawer-icon';
-        extensionDiv.title = 'Gamification';
-        extensionDiv.innerHTML = `<span class="gamification-nav-icon">🎮</span>`;
-        extensionDiv.addEventListener('click', toggleGamificationPanel);
-        
-        // 다른 drawer-icon들 뒤에 추가
-        const existingIcons = document.querySelectorAll('#right-nav-panel .drawer-icon');
-        if (existingIcons.length > 0) {
-            existingIcons[existingIcons.length - 1].after(extensionDiv);
+        // 통계 버튼(📊) 뒤에 추가
+        const statsBtn = headerActions.querySelector('#chat-lobby-stats');
+        if (statsBtn) {
+            statsBtn.after(gamificationBtn);
         } else {
-            drawerContent.appendChild(extensionDiv);
+            // 없으면 맨 앞에 추가
+            headerActions.prepend(gamificationBtn);
         }
         
-        console.log('[Gamification] Toggle button added');
+        console.log('[Gamification] Toggle button added to ChatLobby header');
         return true;
     }
 
