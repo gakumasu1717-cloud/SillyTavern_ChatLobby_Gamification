@@ -874,8 +874,13 @@
             const oldestDate = new Date(snapshotDates[0] + 'T00:00:00');
             const today = new Date();
             daysSinceStart = Math.max(1, Math.ceil((today - oldestDate) / (1000 * 60 * 60 * 24)));
+            // 전체 누적 메시지를 일수로 나눔 (Wrapped 방식)
             avgMessagesPerDay = Math.round(stats.totalMessages / daysSinceStart);
         }
+        
+        // 실제로 활동한 날만 계산한 평균 (활동일 기준)
+        const activeDays = snapshotDates.length;
+        const avgPerActiveDay = activeDays > 0 ? Math.round(stats.totalMessages / activeDays) : 0;
         
         return `
             <div class="today-stats">
@@ -916,15 +921,15 @@
                 <div class="stat-card">
                     <div class="stat-icon">📅</div>
                     <div class="stat-value">${daysSinceStart}일</div>
-                    <div class="stat-label">SillyTavern과 함께한 시간</div>
+                    <div class="stat-label">ChatLobby 사용 기간</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">📝</div>
-                    <div class="stat-value">${avgMessagesPerDay}</div>
-                    <div class="stat-label">하루 평균 메시지</div>
+                    <div class="stat-value">${avgPerActiveDay}</div>
+                    <div class="stat-label">활동일 평균 메시지</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">🔥</div>
+                    <div class="stat-icon"></div>
                     <div class="stat-value">${gamificationData.maxStreak}일</div>
                     <div class="stat-label">최장 연속 출석</div>
                 </div>
