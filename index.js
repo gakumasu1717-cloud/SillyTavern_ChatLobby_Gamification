@@ -363,15 +363,17 @@
         // 오늘 메시지 수 계산 (ChatLobby 방식: findRecentSnapshot 사용)
         const todayMessages = getDailyIncrease(snapshots, today);
         
-        // 이번 주 일요일 찾기 (주간 시작일)
+        // 주간 퀘스트: 매주 월요일 리셋
+        // 이번 주 월요일 00:00:00 찾기
         const now = new Date();
-        const dayOfWeek = now.getDay(); // 0=일요일
+        const dayOfWeek = now.getDay(); // 0=일요일, 1=월요일, ...
+        const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월요일=0, 일요일=6
         const weekStartDate = new Date(now);
-        weekStartDate.setDate(now.getDate() - dayOfWeek);
+        weekStartDate.setDate(now.getDate() - daysSinceMonday);
         weekStartDate.setHours(0, 0, 0, 0);
         const weekStartStr = getLocalDateString(weekStartDate);
         
-        // 주간 시작일 직전의 스냅샷 찾기 (비교 기준)
+        // 주간 시작일(월요일) 직전의 스냅샷 찾기 (비교 기준)
         const weekStartSnapshot = findRecentSnapshot(snapshots, weekStartStr, 7)?.snapshot;
         const weekStartByChar = weekStartSnapshot?.byChar || {};
         
@@ -387,21 +389,25 @@
             });
         }
         
-        // 주간 통계 계산 (하루 평균) + 7일 활동 데이터
+        // 주간 통계 계산: 이번 주 월요일부터 오늘까지
         let weeklyTotal = 0;
         let weeklyDays = 0;
         let weeklyStreak = 0;
-        const checkDate = new Date();
-        const dailyActivity = []; // 7일 활동 배열 (최신순)
+        const dailyActivity = []; // 이번 주 활동 배열 (월요일부터)
         
-        for (let i = 0; i < 7; i++) {
+        // 이번 주 일수 (월요일=1일차, 오늘까지)
+        const daysInWeek = daysSinceMonday + 1; // 월요일부터 오늘까지
+        
+        for (let i = 0; i < daysInWeek; i++) {
+            const checkDate = new Date(weekStartDate);
+            checkDate.setDate(weekStartDate.getDate() + i);
             const dateStr = getLocalDateString(checkDate);
             const daySnapshot = snapshots[dateStr];
             
             // ChatLobby 방식으로 일별 증가량 계산
             const dayMessages = getDailyIncrease(snapshots, dateStr);
             
-            // 7일 활동 데이터 추가
+            // 활동 데이터 추가
             dailyActivity.push({
                 date: dateStr,
                 dayOfWeek: checkDate.getDay(), // 0=일, 1=월, ...
@@ -412,11 +418,16 @@
             if (daySnapshot && daySnapshot.total > 0) {
                 weeklyTotal += dayMessages;
                 weeklyDays++;
-                
-                // 연속 출석 체크
-                if (i === weeklyStreak) weeklyStreak++;
             }
-            checkDate.setDate(checkDate.getDate() - 1);
+        }
+        
+        // 연속 출석 체크 (오늘부터 역순으로)
+        for (let i = dailyActivity.length - 1; i >= 0; i--) {
+            if (dailyActivity[i].hasData && dailyActivity[i].messages > 0) {
+                weeklyStreak++;
+            } else {
+                break;
+            }
         }
         
         const weeklyAvg = weeklyDays > 0 ? Math.round(weeklyTotal / weeklyDays) : 0;
@@ -571,8 +582,21 @@
         gamificationBtn.innerHTML = '🎮';
         gamificationBtn.addEventListener('click', toggleGamificationPanel);
         
+        // 테두리 토글 버튼 생성
+        const borderToggleBtn = document.createElement('button');
+        borderToggleBtn.id = 'gamification-border-toggle';
+        borderToggleBtn.setAttribute('data-action', 'toggle-border');
+        borderToggleBtn.title = '봇카드 테두리 토글';
+        borderToggleBtn.innerHTML = borderEnabled ? '🎨' : '⬜';
+        borderToggleBtn.addEventListener('click', () => {
+            const enabled = toggleBorderDisplay();
+            borderToggleBtn.innerHTML = enabled ? '🎨' : '⬜';
+            borderToggleBtn.title = enabled ? '봇카드 테두리 끄기' : '봇카드 테두리 켜기';
+        });
+        
         // 통계 버튼(📊) 뒤에 추가
         statsBtn.after(gamificationBtn);
+        gamificationBtn.after(borderToggleBtn);
         
         console.log('[Gamification] Toggle button added to ChatLobby header');
         return true;
@@ -830,23 +854,6 @@
      * 통계 탭 HTML
      */
     function createStatsTabHTML(stats) {
-        // ChatLobby Wrapped 방식: 스냅샷에서 가장 오래된 날짜 찾기
-        const snapshotDates = Object.keys(stats.snapshots).sort();
-        let daysSinceStart = 1;
-        let avgMessagesPerDay = 0;
-        
-        if (snapshotDates.length > 0) {
-            const oldestDate = new Date(snapshotDates[0] + 'T00:00:00');
-            const today = new Date();
-            daysSinceStart = Math.max(1, Math.ceil((today - oldestDate) / (1000 * 60 * 60 * 24)));
-            // 전체 누적 메시지를 일수로 나눔 (Wrapped 방식)
-            avgMessagesPerDay = Math.round(stats.totalMessages / daysSinceStart);
-        }
-        
-        // 실제로 활동한 날만 계산한 평균 (활동일 기준)
-        const activeDays = snapshotDates.length;
-        const avgPerActiveDay = activeDays > 0 ? Math.round(stats.totalMessages / activeDays) : 0;
-        
         return `
             <div class="today-stats">
                 <h4>📆 오늘의 활동</h4>
@@ -879,29 +886,6 @@
                         <span class="weekly-overview-value">${stats.weeklyCharCount}개</span>
                         <span class="weekly-overview-label">주간 대화한 봇</span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-value">${daysSinceStart}일</div>
-                    <div class="stat-label">ChatLobby 사용 기간</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📝</div>
-                    <div class="stat-value">${avgPerActiveDay}</div>
-                    <div class="stat-label">활동일 평균 메시지</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"></div>
-                    <div class="stat-value">${gamificationData.maxStreak}일</div>
-                    <div class="stat-label">최장 연속 출석</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">💍</div>
-                    <div class="stat-value">${gamificationData.loyalDays}일</div>
-                    <div class="stat-label">일편단심 기록</div>
                 </div>
             </div>
             
@@ -975,6 +959,103 @@
     }
 
     // ============================================
+    // 봇카드 테두리 표시 (ChatLobby 연동)
+    // ============================================
+
+    let observer = null;
+    let borderEnabled = true;
+
+    /**
+     * 봇카드에 호감도 테두리 적용 (이모지 없이 테두리만)
+     */
+    function decorateCharacterCards() {
+        if (!borderEnabled) return;
+        
+        const snapshots = loadCalendarSnapshots();
+        const today = getLocalDateString();
+        const byChar = snapshots[today]?.byChar || {};
+        
+        const cards = document.querySelectorAll('.lobby-char-card');
+        
+        cards.forEach(card => {
+            const avatar = card.dataset.charAvatar;
+            if (!avatar) return;
+            
+            // 이미 처리된 카드는 스킵
+            if (card.dataset.gamificationBorder) return;
+            
+            const msgCount = byChar[avatar] || 0;
+            const tier = getAffinityTier(msgCount);
+            
+            if (tier.tier === 'stranger') return;
+            
+            // 테두리만 적용
+            if (tier.border !== 'none') {
+                card.style.border = tier.border;
+                card.dataset.gamificationBorder = 'true';
+            }
+        });
+    }
+
+    /**
+     * 봇카드 테두리 제거
+     */
+    function removeCharacterBorders() {
+        document.querySelectorAll('.lobby-char-card').forEach(card => {
+            if (card.dataset.gamificationBorder) {
+                card.style.border = '';
+                delete card.dataset.gamificationBorder;
+            }
+        });
+    }
+
+    /**
+     * 테두리 토글
+     */
+    function toggleBorderDisplay() {
+        borderEnabled = !borderEnabled;
+        if (borderEnabled) {
+            decorateCharacterCards();
+        } else {
+            removeCharacterBorders();
+        }
+        return borderEnabled;
+    }
+
+    /**
+     * MutationObserver로 캐릭터 카드 감지
+     */
+    function observeCharacterCards() {
+        if (observer) observer.disconnect();
+        
+        observer = new MutationObserver((mutations) => {
+            let shouldDecorate = false;
+            
+            mutations.forEach(mutation => {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === 1 && (
+                            node.classList?.contains('lobby-char-card') ||
+                            node.querySelector?.('.lobby-char-card')
+                        )) {
+                            shouldDecorate = true;
+                        }
+                    });
+                }
+            });
+            
+            if (shouldDecorate && borderEnabled) {
+                requestAnimationFrame(decorateCharacterCards);
+            }
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // ============================================
     // 초기화
     // ============================================
 
@@ -1003,10 +1084,14 @@
         };
         tryAddToggle();
         
+        // 캐릭터 카드 감시 및 테두리 적용
+        observeCharacterCards();
+        
         // 초기 통계 수집 및 업적 체크
         setTimeout(() => {
             const stats = collectAllStats();
             checkAchievements(stats);
+            decorateCharacterCards();
         }, 2000);
         
         isInitialized = true;

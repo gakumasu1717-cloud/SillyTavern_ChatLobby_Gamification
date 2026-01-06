@@ -478,40 +478,6 @@
    통계 탭
    ============================================ */
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    text-align: center;
-}
-
-.stat-card .stat-icon {
-    font-size: 1.5em;
-    margin-bottom: 8px;
-}
-
-.stat-card .stat-value {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: var(--SmartThemeBodyColor, #fff);
-}
-
-.stat-card .stat-label {
-    font-size: 0.75em;
-    color: var(--SmartThemeQuoteColor, #aaa);
-    margin-top: 4px;
-}
-
 /* 활동 차트 */
 .stats-chart {
     background: rgba(255, 255, 255, 0.03);
@@ -650,14 +616,6 @@
     
     .gamification-summary {
         grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .legend-grid {
-        grid-template-columns: 1fr;
     }
     
     .gamification-achievement-notification {
@@ -937,23 +895,6 @@
         font-size: 0.7em;
     }
     
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-    
-    .stat-card {
-        padding: 12px 8px;
-    }
-    
-    .stat-value {
-        font-size: 1.1em;
-    }
-    
-    .stat-label {
-        font-size: 0.7em;
-    }
-    
     .activity-chart {
         gap: 6px;
     }
@@ -979,10 +920,6 @@
     
     .gamification-summary {
         grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
     }
     
     .weekly-overview-grid {
