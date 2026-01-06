@@ -46,14 +46,14 @@
             { id: 'msg_1000000', name: '나무위키 편집자', desc: '설정집만 A4 1000장 분량', icon: '📚', condition: (d) => d.totalMessages >= 1000000 },
         ],
         
-        // 👥 캐릭터 수집 업적 (기준: 봇카드 100개 기본)
+        // 🤖 봇 수집 업적 (기준: 봇카드 100개 기본)
         collection: [
-            { id: 'char_10', name: '시작하는 콜렉터', desc: '10명의 캐릭터와 대화했습니다', icon: '📦', condition: (d) => d.charCount >= 10 },
-            { id: 'char_25', name: '사교적인 편', desc: '25명의 캐릭터와 대화했습니다', icon: '🎭', condition: (d) => d.charCount >= 25 },
-            { id: 'char_50', name: '하렘 빌더', desc: '50명의 캐릭터! 바람둥이가 아닙니다', icon: '👑', condition: (d) => d.charCount >= 50 },
-            { id: 'char_100', name: '문어발 연애', desc: '100명! 박애주의자이신가요?', icon: '🐙', condition: (d) => d.charCount >= 100 },
-            { id: 'char_200', name: '은하계 콜렉터', desc: '200명의 캐릭터와 대화했습니다', icon: '🌍', condition: (d) => d.charCount >= 200 },
-            { id: 'char_500', name: '차원 정복자', desc: '500명! 모든 세계관을 섭렵하셨군요', icon: '🌌', condition: (d) => d.charCount >= 500 },
+            { id: 'char_10', name: '시작하는 콜렉터', desc: '10개의 봇과 대화했습니다', icon: '📦', condition: (d) => d.charCount >= 10 },
+            { id: 'char_25', name: '사교적인 편', desc: '25개의 봇과 대화했습니다', icon: '🎭', condition: (d) => d.charCount >= 25 },
+            { id: 'char_50', name: '하렘 빌더', desc: '50개의 봇! 바람둥이가 아닙니다', icon: '👑', condition: (d) => d.charCount >= 50 },
+            { id: 'char_100', name: '문어발 연애', desc: '100개! 박애주의자이신가요?', icon: '🐙', condition: (d) => d.charCount >= 100 },
+            { id: 'char_200', name: '은하계 콜렉터', desc: '200개의 봇과 대화했습니다', icon: '🌍', condition: (d) => d.charCount >= 200 },
+            { id: 'char_500', name: '차원 정복자', desc: '500개! 모든 세계관을 섭렵하셨군요', icon: '🌌', condition: (d) => d.charCount >= 500 },
         ],
         
         // 📅 출석 업적 (스트릭 기반)
@@ -78,9 +78,9 @@
         
         // 🎯 특수 업적
         special: [
-            { id: 'favorite_char', name: '단짝', desc: '캐릭터를 즐겨찾기에 추가했습니다', icon: '⭐', condition: (d) => d.hasFavorites },
-            { id: 'multi_lover', name: '환승 이별', desc: '오늘 5명 이상의 캐릭터와 대화했습니다', icon: '💔', condition: (d) => d.todayCharCount >= 5 },
-            { id: 'loyalist', name: '일편단심', desc: '7일간 한 캐릭터에만 집중했습니다', icon: '💍', condition: (d) => d.loyalDays >= 7 },
+            { id: 'favorite_char', name: '단짝', desc: '봇을 즐겨찾기에 추가했습니다', icon: '⭐', condition: (d) => d.hasFavorites },
+            { id: 'multi_lover', name: '환승 이별', desc: '오늘 5개 이상의 봇과 대화했습니다', icon: '💔', condition: (d) => d.todayCharCount >= 5 },
+            { id: 'loyalist', name: '일편단심', desc: '7일간 한 봇에만 집중했습니다', icon: '💍', condition: (d) => d.loyalDays >= 7 },
             { id: 'marathon', name: '마라톤 챗', desc: '하루에 500개 이상 메시지를 보냈습니다', icon: '🏃', condition: (d) => d.todayMessages >= 500 },
             { id: 'ultra_marathon', name: '울트라 마라톤', desc: '하루에 1,000개 이상 메시지를 보냈습니다', icon: '🏅', condition: (d) => d.todayMessages >= 1000 },
         ],
@@ -89,7 +89,7 @@
         weekly: [
             { id: 'weekly_avg_200', name: '주간 일일 평균 200', desc: '이번 주 하루 평균 200개 이상 메시지', icon: '📊', condition: (d) => d.weeklyAvg >= 200 },
             { id: 'weekly_avg_300', name: '주간 헤비 유저', desc: '이번 주 하루 평균 300개 이상 메시지', icon: '📈', condition: (d) => d.weeklyAvg >= 300 },
-            { id: 'weekly_chars_10', name: '주간 탐험가', desc: '이번 주 10명 이상의 캐릭터와 대화', icon: '🗺️', condition: (d) => d.weeklyCharCount >= 10 },
+            { id: 'weekly_chars_10', name: '주간 탐험가', desc: '이번 주 10개 이상의 봇과 대화', icon: '🗺️', condition: (d) => d.weeklyCharCount >= 10 },
             { id: 'weekly_streak_7', name: '주간 개근', desc: '이번 주 매일 접속', icon: '✅', condition: (d) => d.weeklyStreak >= 7 },
         ],
         
@@ -676,9 +676,9 @@
                         <span class="summary-label">총 메시지</span>
                     </div>
                     <div class="summary-card">
-                        <span class="summary-icon">👥</span>
+                        <span class="summary-icon">🤖</span>
                         <span class="summary-value">${stats.charCount}</span>
-                        <span class="summary-label">캐릭터</span>
+                        <span class="summary-label">대화한 봇</span>
                     </div>
                     <div class="summary-card">
                         <span class="summary-icon">🔥</span>
@@ -712,8 +712,8 @@
         if (topCharacters.length === 0) {
             return `
                 <div class="gamification-empty">
-                    <p>아직 대화한 캐릭터가 없습니다</p>
-                    <p>ChatLobby에서 캐릭터와 대화를 시작해보세요!</p>
+                    <p>아직 대화한 봇이 없습니다</p>
+                    <p>ChatLobby에서 봇과 대화를 시작해보세요!</p>
                 </div>
             `;
         }
@@ -776,8 +776,8 @@
                         <span class="weekly-value">${stats.weeklyAvg}개</span>
                     </div>
                     <div class="weekly-stat">
-                        <span class="weekly-label">이번 주 대화 캐릭터</span>
-                        <span class="weekly-value">${stats.weeklyCharCount}명</span>
+                        <span class="weekly-label">이번 주 대화한 봇</span>
+                        <span class="weekly-value">${stats.weeklyCharCount}개</span>
                     </div>
                     <div class="weekly-stat">
                         <span class="weekly-label">이번 주 연속 출석</span>
@@ -857,9 +857,9 @@
                         <span class="today-stat-label">오늘 메시지</span>
                     </div>
                     <div class="today-stat-card">
-                        <span class="today-stat-icon">👥</span>
+                        <span class="today-stat-icon">🤖</span>
                         <span class="today-stat-value">${stats.todayCharCount}</span>
-                        <span class="today-stat-label">오늘 대화 캐릭터</span>
+                        <span class="today-stat-label">오늘 대화한 봇</span>
                     </div>
                 </div>
             </div>
@@ -876,8 +876,8 @@
                         <span class="weekly-overview-label">주간 총 메시지</span>
                     </div>
                     <div class="weekly-overview-card">
-                        <span class="weekly-overview-value">${stats.weeklyCharCount}명</span>
-                        <span class="weekly-overview-label">주간 대화 캐릭터</span>
+                        <span class="weekly-overview-value">${stats.weeklyCharCount}개</span>
+                        <span class="weekly-overview-label">주간 대화한 봇</span>
                     </div>
                 </div>
             </div>
