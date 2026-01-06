@@ -377,10 +377,17 @@
         // 오늘 메시지 수 계산 (ChatLobby 방식: findRecentSnapshot 사용)
         const todayMessages = getDailyIncrease(snapshots, today);
         
+        // 7일 전 스냅샷 찾기 (주간 캐릭터 증가량 계산용)
+        const weekAgoDate = new Date();
+        weekAgoDate.setDate(weekAgoDate.getDate() - 7);
+        const weekAgoStr = getLocalDateString(weekAgoDate);
+        const weekAgoSnapshot = snapshots[weekAgoStr] || findRecentSnapshot(snapshots, weekAgoStr, 7)?.snapshot;
+        const weekAgoCharSet = weekAgoSnapshot?.byChar ? new Set(Object.keys(weekAgoSnapshot.byChar).filter(k => weekAgoSnapshot.byChar[k] > 0)) : new Set();
+        
         // 주간 통계 계산 (하루 평균) + 7일 활동 데이터
         let weeklyTotal = 0;
         let weeklyDays = 0;
-        const weeklyCharSet = new Set();
+        const weeklyCharSet = new Set(); // 이번 주 대화한 캐릭터
         let weeklyStreak = 0;
         const checkDate = new Date();
         const dailyActivity = []; // 7일 활동 배열 (최신순)
@@ -418,6 +425,9 @@
         const weeklyAvg = weeklyDays > 0 ? Math.round(weeklyTotal / weeklyDays) : 0;
         const weeklyCharCount = weeklyCharSet.size;
         
+        // 주간 신규 캐릭터 수 (7일 전 대비 증가)
+        const weeklyNewChars = [...weeklyCharSet].filter(char => !weekAgoCharSet.has(char)).length;
+        
         gamificationData.lastVisit = Date.now();
         saveData();
         
@@ -441,6 +451,7 @@
             weeklyCharCount,
             weeklyStreak,
             weeklyTotal,
+            weeklyNewChars, // 주간 신규 캐릭터 수
             dailyActivity // 7일 활동 데이터 (최신순)
         };
     }
@@ -589,6 +600,8 @@
 
     /**
      * 게이미피케이션 패널 열기
+     * SillyTavern 모바일은 body에 transform이 걸려있어 fixed가 동작하지 않음
+     * ChatLobby 내부에 패널을 추가하여 해결
      */
     function openGamificationPanel() {
         if (panelVisible) return;
@@ -602,7 +615,15 @@
         
         panel.innerHTML = createPanelHTML(stats);
         
-        document.body.appendChild(panel);
+        // ChatLobby 내부에 추가 (모바일 transform 문제 우회)
+        // ChatLobby가 없으면 body에 추가
+        const chatLobby = document.getElementById('chat-lobby');
+        if (chatLobby) {
+            chatLobby.appendChild(panel);
+        } else {
+            document.body.appendChild(panel);
+        }
+        
         panelVisible = true;
         
         // 애니메이션
@@ -771,8 +792,8 @@
                         <span class="weekly-value">${stats.weeklyAvg}개</span>
                     </div>
                     <div class="weekly-stat">
-                        <span class="weekly-label">이번 주 대화 캐릭터</span>
-                        <span class="weekly-value">${stats.weeklyCharCount}명</span>
+                        <span class="weekly-label">이번 주 신규 캐릭터</span>
+                        <span class="weekly-value">+${stats.weeklyNewChars}명</span>
                     </div>
                     <div class="weekly-stat">
                         <span class="weekly-label">이번 주 연속 출석</span>
@@ -854,8 +875,8 @@
                         <span class="weekly-overview-label">주간 총 메시지</span>
                     </div>
                     <div class="weekly-overview-card">
-                        <span class="weekly-overview-value">${stats.weeklyCharCount}명</span>
-                        <span class="weekly-overview-label">주간 대화 캐릭터</span>
+                        <span class="weekly-overview-value">+${stats.weeklyNewChars}명</span>
+                        <span class="weekly-overview-label">주간 신규 캐릭터</span>
                     </div>
                 </div>
             </div>

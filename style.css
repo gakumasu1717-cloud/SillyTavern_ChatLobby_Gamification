@@ -26,11 +26,12 @@
 }
 
 /* ============================================
-   메인 패널
+   메인 패널 - ChatLobby 내부에 추가됨
+   SillyTavern 모바일 transform 문제 우회
    ============================================ */
 
 .gamification-panel {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -63,7 +64,7 @@
     transform: translate(-50%, -50%) scale(0.95);
     width: 90%;
     max-width: 600px;
-    max-height: 85vh;
+    max-height: 85%;
     background: var(--SmartThemeBlurTintColor, #1a1a2e);
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -75,6 +76,37 @@
 
 .gamification-panel.show .gamification-content {
     transform: translate(-50%, -50%) scale(1);
+}
+
+/* 모바일 전체화면 모드 */
+@media (max-width: 768px) {
+    .gamification-content {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        top: 0;
+        left: 0;
+        transform: translateY(100%);
+    }
+    
+    .gamification-panel.show .gamification-content {
+        transform: translateY(0);
+    }
+    
+    .gamification-overlay {
+        display: none; /* 모바일에서는 오버레이 숨김 */
+    }
+    
+    .gamification-header {
+        padding: 12px 16px;
+        padding-top: max(12px, env(safe-area-inset-top));
+    }
+    
+    .gamification-body {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
 }
 
 /* ============================================
@@ -839,5 +871,148 @@
     
     .weekly-stats-summary {
         flex-direction: column;
+    }
+}
+/* ============================================
+   모바일 추가 반응형 스타일
+   ============================================ */
+
+@media (max-width: 768px) {
+    .gamification-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .summary-card {
+        padding: 10px 6px;
+    }
+    
+    .summary-value {
+        font-size: 1em;
+    }
+    
+    .summary-label {
+        font-size: 0.7em;
+    }
+    
+    .gamification-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .gamification-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 10px 14px;
+        font-size: 0.85em;
+    }
+    
+    .gamification-body {
+        padding: 12px;
+    }
+    
+    .affinity-grid {
+        gap: 10px;
+    }
+    
+    .affinity-card {
+        padding: 10px;
+    }
+    
+    .affinity-avatar img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .affinity-name {
+        font-size: 0.9em;
+    }
+    
+    .affinity-stats {
+        font-size: 0.75em;
+    }
+    
+    .achievement-grid {
+        gap: 8px;
+    }
+    
+    .achievement-item {
+        padding: 10px;
+    }
+    
+    .achievement-icon {
+        font-size: 1.5em;
+    }
+    
+    .achievement-name {
+        font-size: 0.85em;
+    }
+    
+    .achievement-desc {
+        font-size: 0.7em;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 12px 8px;
+    }
+    
+    .stat-value {
+        font-size: 1.1em;
+    }
+    
+    .stat-label {
+        font-size: 0.7em;
+    }
+    
+    .activity-chart {
+        gap: 6px;
+    }
+    
+    .chart-bar {
+        min-width: 35px;
+    }
+    
+    .bar-label {
+        font-size: 0.75em;
+    }
+    
+    .bar-value {
+        font-size: 0.7em;
+    }
+    
+    .legend-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+    
+    .legend-item {
+        padding: 6px 8px;
+        font-size: 0.8em;
+    }
+}
+
+/* 아주 작은 화면 (375px 이하) */
+@media (max-width: 375px) {
+    .gamification-header h2 {
+        font-size: 1.1em;
+    }
+    
+    .gamification-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .weekly-overview-grid {
+        grid-template-columns: 1fr;
     }
 }
