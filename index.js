@@ -890,7 +890,7 @@
             </div>
             
             <div class="stats-chart">
-                <h4>📈 최근 7일 활동</h4>
+                <h4>📈 이번 주 활동</h4>
                 <div class="activity-chart">
                     ${createActivityChart(stats.dailyActivity)}
                 </div>
@@ -966,7 +966,7 @@
     let borderEnabled = true;
 
     /**
-     * 봇카드에 호감도 테두리 적용 (이모지 없이 테두리만)
+     * 봇카드에 호감도 테두리 적용 (PC: 호버 시, 모바일: 항상)
      */
     function decorateCharacterCards() {
         if (!borderEnabled) return;
@@ -989,9 +989,10 @@
             
             if (tier.tier === 'stranger') return;
             
-            // 테두리만 적용
+            // CSS 변수로 테두리 정보 저장 (호버 시 적용)
             if (tier.border !== 'none') {
-                card.style.border = tier.border;
+                card.style.setProperty('--gamification-border', tier.border);
+                card.classList.add('gamification-has-border');
                 card.dataset.gamificationBorder = 'true';
             }
         });
@@ -1003,7 +1004,8 @@
     function removeCharacterBorders() {
         document.querySelectorAll('.lobby-char-card').forEach(card => {
             if (card.dataset.gamificationBorder) {
-                card.style.border = '';
+                card.style.removeProperty('--gamification-border');
+                card.classList.remove('gamification-has-border');
                 delete card.dataset.gamificationBorder;
             }
         });
