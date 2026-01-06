@@ -386,34 +386,22 @@
     color: var(--SmartThemeQuoteColor, #aaa);
 }
 
-.legend-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-}
-
-.legend-item {
+.legend-bar {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    font-size: 0.8em;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.legend-icon {
-    font-size: 1.1em;
-}
-
-.legend-name {
+.legend-segment {
     flex: 1;
-    color: var(--SmartThemeBodyColor, #fff);
+    cursor: help;
+    transition: transform 0.2s, filter 0.2s;
 }
 
-.legend-range {
-    color: var(--SmartThemeQuoteColor, #888);
-    font-size: 0.9em;
+.legend-segment:hover {
+    filter: brightness(1.2);
+    transform: scaleY(1.2);
 }
 
 /* ============================================
@@ -980,16 +968,6 @@
     
     .bar-value {
         font-size: 0.7em;
-    }
-    
-    .legend-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-    }
-    
-    .legend-item {
-        padding: 6px 8px;
-        font-size: 0.8em;
     }
 }
 

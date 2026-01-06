@@ -748,13 +748,9 @@
             
             <div class="affinity-legend">
                 <h4>호감도 등급</h4>
-                <div class="legend-grid">
+                <div class="legend-bar">
                     ${AFFINITY_TIERS.map(tier => `
-                        <div class="legend-item">
-                            <span class="legend-icon">${tier.icon}</span>
-                            <span class="legend-name">${tier.name}</span>
-                            <span class="legend-range">${tier.min.toLocaleString()}+</span>
-                        </div>
+                        <div class="legend-segment" style="background: ${tier.color}" title="${tier.name} (${tier.min.toLocaleString()}+)"></div>
                     `).join('')}
                 </div>
             </div>
