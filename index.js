@@ -364,17 +364,33 @@
         // 오늘 메시지 수 계산 (ChatLobby 방식: findRecentSnapshot 사용)
         const todayMessages = getDailyIncrease(snapshots, today);
         
-        // 7일 전 스냅샷 찾기 (주간 캐릭터 증가량 계산용)
-        const weekAgoDate = new Date();
-        weekAgoDate.setDate(weekAgoDate.getDate() - 7);
-        const weekAgoStr = getLocalDateString(weekAgoDate);
-        const weekAgoSnapshot = snapshots[weekAgoStr] || findRecentSnapshot(snapshots, weekAgoStr, 7)?.snapshot;
-        const weekAgoCharSet = weekAgoSnapshot?.byChar ? new Set(Object.keys(weekAgoSnapshot.byChar).filter(k => weekAgoSnapshot.byChar[k] > 0)) : new Set();
+        // 이번 주 일요일 찾기 (주간 시작일)
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0=일요일
+        const weekStartDate = new Date(now);
+        weekStartDate.setDate(now.getDate() - dayOfWeek);
+        weekStartDate.setHours(0, 0, 0, 0);
+        const weekStartStr = getLocalDateString(weekStartDate);
+        
+        // 주간 시작일 직전의 스냅샷 찾기 (비교 기준)
+        const weekStartSnapshot = findRecentSnapshot(snapshots, weekStartStr, 7)?.snapshot;
+        const weekStartByChar = weekStartSnapshot?.byChar || {};
+        
+        // 이번 주 대화한 봇 계산: 현재 스냅샷과 주간 시작 스냅샷 비교
+        // 메시지가 증가한 봇만 카운트
+        let weeklyChattedBots = 0;
+        if (latestSnapshot?.byChar) {
+            Object.entries(latestSnapshot.byChar).forEach(([char, msgCount]) => {
+                const prevCount = weekStartByChar[char] || 0;
+                if (msgCount > prevCount) {
+                    weeklyChattedBots++;
+                }
+            });
+        }
         
         // 주간 통계 계산 (하루 평균) + 7일 활동 데이터
         let weeklyTotal = 0;
         let weeklyDays = 0;
-        const weeklyCharSet = new Set(); // 이번 주 대화한 캐릭터
         let weeklyStreak = 0;
         const checkDate = new Date();
         const dailyActivity = []; // 7일 활동 배열 (최신순)
@@ -398,13 +414,6 @@
                 weeklyTotal += dayMessages;
                 weeklyDays++;
                 
-                // 해당 날 대화한 봇 (메시지가 0인 것 제외)
-                if (daySnapshot.byChar) {
-                    Object.keys(daySnapshot.byChar)
-                        .filter(k => daySnapshot.byChar[k] > 0)
-                        .forEach(char => weeklyCharSet.add(char));
-                }
-                
                 // 연속 출석 체크
                 if (i === weeklyStreak) weeklyStreak++;
             }
@@ -412,10 +421,7 @@
         }
         
         const weeklyAvg = weeklyDays > 0 ? Math.round(weeklyTotal / weeklyDays) : 0;
-        const weeklyCharCount = weeklyCharSet.size;
-        
-        // 주간 신규 캐릭터 수 (7일 전 대비 증가)
-        const weeklyNewChars = [...weeklyCharSet].filter(char => !weekAgoCharSet.has(char)).length;
+        const weeklyCharCount = weeklyChattedBots; // 이번 주 대화한 봇 수
         
         gamificationData.lastVisit = Date.now();
         saveData();
