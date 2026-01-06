@@ -848,14 +848,6 @@
         }
         
         return `
-            <div class="settings-section">
-                <label class="settings-toggle">
-                    <input type="checkbox" id="badge-toggle" ${gamificationData.badgeEnabled ? 'checked' : ''}>
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">캐릭터 카드 뱃지 표시</span>
-                </label>
-            </div>
-            
             <div class="today-stats">
                 <h4>📆 오늘의 활동</h4>
                 <div class="today-stats-grid">
@@ -978,19 +970,6 @@
                 break;
             case 'stats':
                 content.innerHTML = createStatsTabHTML(stats);
-                // 뱃지 토글 이벤트
-                const badgeToggle = content.querySelector('#badge-toggle');
-                if (badgeToggle) {
-                    badgeToggle.addEventListener('change', (e) => {
-                        gamificationData.badgeEnabled = e.target.checked;
-                        saveData();
-                        if (e.target.checked) {
-                            decorateCharacterCards();
-                        } else {
-                            removeCharacterBadges();
-                        }
-                    });
-                }
                 break;
         }
     }
