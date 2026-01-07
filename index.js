@@ -906,8 +906,8 @@
             return '<div class="no-data">데이터 없음</div>';
         }
         
-        // dailyActivity는 최신순이므로 역순으로 정렬 (오래된 순 -> 최신순)
-        const days = [...dailyActivity].reverse();
+        // dailyActivity는 이미 월요일부터 순서대로 (오래된 순 -> 최신순)
+        const days = [...dailyActivity];
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         
         const maxMessages = Math.max(...days.map(d => d.messages), 1);
